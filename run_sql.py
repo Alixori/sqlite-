@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 
 DB_NAME = 'sales_db.sqlite'
-SQL_FILE = 'SQLite(1).sql'
+SQL_FILE = 'sqliteinventory.sql'
 
 conn = sqlite3.connect(DB_NAME)
 conn.execute('PRAGMA foreign_keys = ON;')
