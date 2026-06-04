@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Report - Sales Management System{% endblock %}
+
+{% block content %}
+<h1>📊 Sales Report</h1>
+
+<button class="btn btn-primary" onclick="openModal('addSaleModal')">+ Record New Sale</button>
+
+<table>
+    <thead>
+        <tr>
+            <th>Sale ID</th>
+            <th>Client Name</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Total Amount</th>
+            <th>Sale Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if sales %}
+            {% for sale in sales %}
+            <tr>
+                <td>#{{ sale.sale_id }}</td>
+                <td>{{ sale.client_name }}</td>
+                <td>{{ sale.product_name }}</td>
+                <td>{{ sale.quantity_sold }}</td>
+                <td>${{ "%.2f"|format(sale.total_amount) }}</td>
+                <td>{{ sale.sale_date }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete_sale', sale_id=sale.sale_id) }}" style="display: inline;">
+                        <button class="btn btn-danger" type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="7" style="text-align: center; padding: 20px; color: #999;">No sales found</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<!-- Add Sale Modal -->
+<div id="addSaleModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('addSaleModal')">&times;</span>
+        <h2>Record New Sale</h2>
+        <form method="POST" action="{{ url_for('add_sale') }}">
+            <div class="form-group">
+                <label for="client_id">Client:</label>
+                <select id="client_id" name="client_id" required>
+                    <option value="">Select a client</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="product_id">Product:</label>
+                <select id="product_id" name="product_id" required onchange="updateTotal()">
+                    <option value="">Select a product</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="quantity_sold">Quantity:</label>
+                <input type="number" id="quantity_sold" name="quantity_sold" min="1" required onchange="updateTotal()">
+            </div>
+            <div class="form-group">
+                <label for="total_amount">Total Amount:</label>
+                <input type="number" id="total_amount" name="total_amount" step="0.01" readonly>
+            </div>
+            <button class="btn btn-primary" type="submit">Record Sale</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let productPrices = {};
+    
+    function openModal(id) {
+        document.getElementById(id).classList.add('show');
+        loadClients();
+        loadProducts();
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+    
+    function loadClients() {
+        const select = document.getElementById('client_id');
+        if (select.options.length === 1) {
+            fetch('/api/clients')
+                .then(response => response.json())
+                .then(clients => {
+                    clients.forEach(client => {
+                        const option = document.createElement('option');
+                        option.value = client.client_id;
+                        option.textContent = client.name;
+                        select.appendChild(option);
+                    });
+                });
+        }
+    }
+    
+    function loadProducts() {
+        const select = document.getElementById('product_id');
+        if (select.options.length === 1) {
+            fetch('/api/products')
+                .then(response => response.json())
+                .then(products => {
+                    products.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.product_id;
+                        option.textContent = `${product.product_name} ($${product.price.toFixed(2)})`;
+                        select.appendChild(option);
+                        productPrices[product.product_id] = product.price;
+                    });
+                });
+        }
+    }
+    
+    function updateTotal() {
+        const productId = parseInt(document.getElementById('product_id').value);
+        const quantity = parseInt(document.getElementById('quantity_sold').value) || 0;
+        const price = productPrices[productId] || 0;
+        const total = (quantity * price).toFixed(2);
+        document.getElementById('total_amount').value = total;
+    }
+    
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('show');
+        }
+    }
+</script>
+{% endblock %}

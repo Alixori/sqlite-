@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Clients - Sales Management System{% endblock %}
+
+{% block content %}
+<h1>👥 Clients</h1>
+
+<button class="btn btn-primary" onclick="openModal('addClientModal')">+ Add New Client</button>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if clients %}
+            {% for client in clients %}
+            <tr>
+                <td>{{ client.first_name }} {{ client.last_name }}</td>
+                <td>{{ client.email if client.email else 'N/A' }}</td>
+                <td>{{ client.phone if client.phone else 'N/A' }}</td>
+                <td>
+                    <button class="btn btn-secondary" onclick="openModal('editModal{{ client.client_id }}')">Edit</button>
+                    <form method="POST" action="{{ url_for('delete_client', client_id=client.client_id) }}" style="display: inline;">
+                        <button class="btn btn-danger" type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="4" style="text-align: center; padding: 20px; color: #999;">No clients found</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<!-- Add Client Modal -->
+<div id="addClientModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('addClientModal')">&times;</span>
+        <h2>Add New Client</h2>
+        <form method="POST" action="{{ url_for('add_client') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">First Name:</label>
+                    <input type="text" id="first_name" name="first_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name:</label>
+                    <input type="text" id="last_name" name="last_name" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email">
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone:</label>
+                <input type="text" id="phone" name="phone">
+            </div>
+            <button class="btn btn-primary" type="submit">Add Client</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Client Modals -->
+{% for client in clients %}
+<div id="editModal{{ client.client_id }}" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('editModal{{ client.client_id }}')">&times;</span>
+        <h2>Edit Client</h2>
+        <form method="POST" action="{{ url_for('update_client', client_id=client.client_id) }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name_{{ client.client_id }}">First Name:</label>
+                    <input type="text" id="first_name_{{ client.client_id }}" name="first_name" value="{{ client.first_name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="last_name_{{ client.client_id }}">Last Name:</label>
+                    <input type="text" id="last_name_{{ client.client_id }}" name="last_name" value="{{ client.last_name }}" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email_{{ client.client_id }}">Email:</label>
+                <input type="email" id="email_{{ client.client_id }}" name="email" value="{{ client.email if client.email else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="phone_{{ client.client_id }}">Phone:</label>
+                <input type="text" id="phone_{{ client.client_id }}" name="phone" value="{{ client.phone if client.phone else '' }}">
+            </div>
+            <button class="btn btn-primary" type="submit">Update Client</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.add('show');
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+    
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('show');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory - Sales Management System{% endblock %}
+
+{% block content %}
+<h1>📈 Inventory</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Quantity In Stock</th>
+            <th>Last Updated</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if inventory %}
+            {% for item in inventory %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>${{ "%.2f"|format(item.price) }}</td>
+                <td>{{ item.quantity_in_stock }} units</td>
+                <td>{{ item.last_updated }}</td>
+                <td>
+                    <button class="btn btn-secondary" onclick="openModal('editModal{{ item.inventory_id }}')">Update Stock</button>
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align: center; padding: 20px; color: #999;">No inventory items found</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<!-- Edit Inventory Modals -->
+{% for item in inventory %}
+<div id="editModal{{ item.inventory_id }}" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('editModal{{ item.inventory_id }}')">&times;</span>
+        <h2>Update Inventory: {{ item.product_name }}</h2>
+        <form method="POST" action="{{ url_for('update_inventory', inventory_id=item.inventory_id) }}">
+            <div class="form-group">
+                <label for="quantity_{{ item.inventory_id }}">Quantity In Stock:</label>
+                <input type="number" id="quantity_{{ item.inventory_id }}" name="quantity_in_stock" value="{{ item.quantity_in_stock }}" min="0" required>
+            </div>
+            <button class="btn btn-primary" type="submit">Update Inventory</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.add('show');
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+    
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('show');
+        }
+    }
+</script>
+{% endblock %}
